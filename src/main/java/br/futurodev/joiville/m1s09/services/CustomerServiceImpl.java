@@ -3,8 +3,11 @@ package br.futurodev.joiville.m1s09.services;
 import br.futurodev.joiville.m1s09.dtos.customers.CustomerRequestDto;
 import br.futurodev.joiville.m1s09.dtos.customers.CustomerResponseDto;
 import br.futurodev.joiville.m1s09.entities.Customer;
+import br.futurodev.joiville.m1s09.errors.exceptions.badrequests.CustomerRequiredAttributeException;
+import br.futurodev.joiville.m1s09.errors.exceptions.notfounds.CustomerNotFoundException;
 import br.futurodev.joiville.m1s09.repositories.CustomerRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,10 +72,13 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public Customer findEntityById(Long id) {
-        return repository.findById(id).orElseThrow();
+        return repository.findById(id).orElseThrow(() -> new CustomerNotFoundException(id));
     }
 
     public CustomerResponseDto save(Customer customer, CustomerRequestDto dto) {
+
+        validateDto(dto);
+
         customer.setUsername(dto.username());
         customer.setName(dto.name());
         customer.setTaxId(dto.taxId());
@@ -88,6 +94,21 @@ public class CustomerServiceImpl implements CustomerService {
                 customer.getContact(),
                 customer.getAddress()
         );
+    }
+
+    private void validateDto(CustomerRequestDto dto) {
+        if (!StringUtils.hasText(dto.username())) {
+            throw new CustomerRequiredAttributeException("username");
+        }
+        if (!StringUtils.hasText(dto.name())) {
+            throw new CustomerRequiredAttributeException("name");
+        }
+        if (!StringUtils.hasText(dto.taxId())) {
+            throw new CustomerRequiredAttributeException("taxId");
+        }
+        if (!StringUtils.hasText(dto.address())) {
+            throw new CustomerRequiredAttributeException("address");
+        }
     }
 
 }

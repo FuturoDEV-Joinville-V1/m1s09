@@ -8,6 +8,7 @@ import java.util.List;
 public interface OrderService {
 
     List<OrderResponseDto> findAll();
+    List<OrderResponseDto> findAllByProductName(String name);
     OrderResponseDto findById(Long id);
     OrderResponseDto create(OrderRequestDto orderRequestDto);
     OrderResponseDto cancel(Long id);

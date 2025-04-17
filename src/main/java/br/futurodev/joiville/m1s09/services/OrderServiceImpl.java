@@ -10,6 +10,8 @@ import br.futurodev.joiville.m1s09.entities.Customer;
 import br.futurodev.joiville.m1s09.entities.Order;
 import br.futurodev.joiville.m1s09.entities.OrderItem;
 import br.futurodev.joiville.m1s09.entities.Product;
+import br.futurodev.joiville.m1s09.errors.exceptions.badrequests.OrderRequiredAttributeException;
+import br.futurodev.joiville.m1s09.errors.exceptions.notfounds.OrderNotFoundException;
 import br.futurodev.joiville.m1s09.repositories.OrderRepository;
 import org.springframework.stereotype.Service;
 
@@ -80,8 +82,54 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public List<OrderResponseDto> findAllByProductName(String name) {
+        List<Order> orders = repository.findAllByProductName(name);
+
+        List<OrderResponseDto> response = new ArrayList<>();
+
+        for (Order order : orders) {
+            OrderResponseDto orderResponse = new OrderResponseDto(
+                    order.getId(),
+                    new CustomerResponseDto(
+                            order.getCustomer().getId(),
+                            order.getCustomer().getName(),
+                            order.getCustomer().getTaxId(),
+                            order.getCustomer().getContact(),
+                            order.getCustomer().getAddress()
+                    ),
+                    order.getTotalItems(),
+                    order.getDiscount(),
+                    order.getGrandTotal(),
+                    new ArrayList<>()
+            );
+
+            for (OrderItem item : order.getItems()) {
+                OrderItemResponseDto itemResponse = new OrderItemResponseDto(
+                        item.getId(),
+                        new ProductResponseDto(
+                                item.getProduct().getId(),
+                                item.getProduct().getName(),
+                                item.getProduct().getDescription(),
+                                item.getProduct().getSku(),
+                                item.getProduct().getStockQuantity(),
+                                item.getProduct().getPrice()
+                        ),
+                        item.getQuantity(),
+                        item.getPrice(),
+                        item.getTotal()
+                );
+                orderResponse.items().add(itemResponse);
+            }
+
+            response.add(orderResponse);
+        }
+
+        return response;
+    }
+
+    @Override
     public OrderResponseDto findById(Long id) {
-        Order order = repository.findById(id).orElseThrow();
+        Order order = repository.findById(id).orElseThrow(() -> new OrderNotFoundException(id));
         OrderResponseDto orderResponse = new OrderResponseDto(
                 order.getId(),
                 new CustomerResponseDto(
@@ -129,6 +177,9 @@ public class OrderServiceImpl implements OrderService {
 
         order.setTotalItems(BigDecimal.ZERO);
 
+        if (dto.customerId() == null) {
+            throw new OrderRequiredAttributeException("customerId");
+        }
         Customer customer = customerService.findEntityById(dto.customerId());
         order.setCustomer(customer);
 
@@ -141,6 +192,9 @@ public class OrderServiceImpl implements OrderService {
                 item.setQuantity(itemDto.quantity());
             }
 
+            if (itemDto.productId() == null) {
+                throw new OrderRequiredAttributeException("items.productId");
+            }
             Product product = productService.findEntityById(itemDto.productId());
             item.setProduct(product);
             item.setPrice(product.getPrice());

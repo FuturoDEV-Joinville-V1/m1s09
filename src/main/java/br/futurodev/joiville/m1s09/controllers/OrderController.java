@@ -28,6 +28,11 @@ public class OrderController {
         return service.findById(id);
     }
 
+    @GetMapping("products/name/{name}")
+    public List<OrderResponseDto> getByProductName(@PathVariable String name) {
+        return service.findAllByProductName(name);
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public OrderResponseDto post(@RequestBody OrderRequestDto dto) {
