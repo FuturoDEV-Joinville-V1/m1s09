@@ -39,4 +39,10 @@ public class OrderController {
         return service.create(dto);
     }
 
+    @PatchMapping("{id}/cancel")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void cancel(@PathVariable Long id) {
+        service.cancel(id);
+    }
+
 }

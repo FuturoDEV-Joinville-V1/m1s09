@@ -1,5 +1,6 @@
 package br.futurodev.joiville.m1s09.entities;
 
+import br.futurodev.joiville.m1s09.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,6 +31,9 @@ public class Order {
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal grandTotal;
+
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();

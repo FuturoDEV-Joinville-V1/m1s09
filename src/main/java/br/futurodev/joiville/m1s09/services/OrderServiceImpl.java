@@ -10,6 +10,7 @@ import br.futurodev.joiville.m1s09.entities.Customer;
 import br.futurodev.joiville.m1s09.entities.Order;
 import br.futurodev.joiville.m1s09.entities.OrderItem;
 import br.futurodev.joiville.m1s09.entities.Product;
+import br.futurodev.joiville.m1s09.enums.OrderStatus;
 import br.futurodev.joiville.m1s09.errors.exceptions.badrequests.OrderRequiredAttributeException;
 import br.futurodev.joiville.m1s09.errors.exceptions.notfounds.OrderNotFoundException;
 import br.futurodev.joiville.m1s09.repositories.OrderRepository;
@@ -54,6 +55,7 @@ public class OrderServiceImpl implements OrderService {
                     order.getTotalItems(),
                     order.getDiscount(),
                     order.getGrandTotal(),
+                    order.getStatus(),
                     new ArrayList<>()
             );
 
@@ -100,6 +102,7 @@ public class OrderServiceImpl implements OrderService {
                     order.getTotalItems(),
                     order.getDiscount(),
                     order.getGrandTotal(),
+                    order.getStatus(),
                     new ArrayList<>()
             );
 
@@ -129,7 +132,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderResponseDto findById(Long id) {
-        Order order = repository.findById(id).orElseThrow(() -> new OrderNotFoundException(id));
+        Order order = findEntityById(id);
         OrderResponseDto orderResponse = new OrderResponseDto(
                 order.getId(),
                 new CustomerResponseDto(
@@ -142,6 +145,7 @@ public class OrderServiceImpl implements OrderService {
                 order.getTotalItems(),
                 order.getDiscount(),
                 order.getGrandTotal(),
+                order.getStatus(),
                 new ArrayList<>()
         );
 
@@ -169,6 +173,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderResponseDto create(OrderRequestDto dto) {
         Order order = new Order();
+        order.setStatus(OrderStatus.ACTIVE);
 
         order.setDiscount(BigDecimal.ZERO);
         if (dto.discount() != null) {
@@ -213,8 +218,13 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderResponseDto cancel(Long id) {
-        // TODO
-        return null;
+    public void cancel(Long id) {
+        Order order = findEntityById(id);
+        order.setStatus(OrderStatus.INACTIVE);
+        repository.save(order);
+    }
+
+    private Order findEntityById(Long id) {
+        return repository.findById(id).orElseThrow(() -> new OrderNotFoundException(id));
     }
 }

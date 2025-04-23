@@ -11,6 +11,6 @@ public interface OrderService {
     List<OrderResponseDto> findAllByProductName(String name);
     OrderResponseDto findById(Long id);
     OrderResponseDto create(OrderRequestDto orderRequestDto);
-    OrderResponseDto cancel(Long id);
+    void cancel(Long id);
 
 }
